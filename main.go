@@ -4,34 +4,39 @@ import (
 	"chinadaily_com_cn/bootstrap"
 	"chinadaily_com_cn/cmd"
 	"chinadaily_com_cn/parser"
+	"chinadaily_com_cn/pkg/config"
 	"chinadaily_com_cn/pkg/fetcher"
+	"chinadaily_com_cn/pkg/queued"
 	"fmt"
 	"github.com/gocolly/colly/v2"
 	"regexp"
-	"time"
 )
 
 func main() {
+	urls := []string{
+		"https://www.chinadaily.com.cn/a/202204/22/WS6262aca8a310fd2b29e58c2c.html",
+		"https://www.chinadaily.com.cn/a/202204/24/WS62650ee7a310fd2b29e58f44.html",
+		"https://www.chinadaily.com.cn/a/202204/24/WS6265032aa310fd2b29e58f1f.html",
+		"https://www.chinadaily.com.cn/a/202204/22/WS626214fda310fd2b29e58a04.html",
+		"https://www.chinadaily.com.cn/a/202204/01/WS6246ad01a310fd2b29e54b28.html",
+		"https://www.chinadaily.com.cn/a/202204/24/WS6264a764a310fd2b29e58e3b.html",
+	}
 	bootstrap.Setup()
 	c := cmd.NewCollector(
 		//colly.Debugger(&debug.LogDebugger{}),
-		colly.Async(true),
+		colly.Async(config.GetBool("spider.async", false)),
 		colly.AllowedDomains("www.chinadaily.com.cn", "chinadaily.com.cn"),
 		colly.DetectCharset(),
 		colly.URLFilters(
-			regexp.MustCompile(`www\.chinadaily\.com\.cn/\w*?/\d{6}/\d{2}/\w+\.html?$`),
+			regexp.MustCompile(`www\.chinadaily\.com\.cn/a/\d{6}/\d{2}/[a-zA-Z0-9]+\.html?$`),
 			//regexp.MustCompile(`http://www\.chinadaily\.com\.cn/index\.html$`),
 		))
-	c.Limit(&colly.LimitRule{
-		DomainGlob:  "*",
-		Parallelism: 20,
-		RandomDelay: 100 * time.Millisecond,
-	})
 	cmd.SpiderCallbacks(c)
-	if err := c.Visit("https://www.chinadaily.com.cn/a/202204/22/WS6262aca8a310fd2b29e58c2c.html"); err != nil {
-		panic(err)
+
+	for _, url := range urls {
+		_ = queued.Queued.AddURL(url)
 	}
-	c.Wait()
+	_ = queued.Queued.Run(c)
 	//testCase()
 }
 
