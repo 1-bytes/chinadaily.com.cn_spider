@@ -25,7 +25,7 @@ func main() {
 	c.Limit(&colly.LimitRule{
 		DomainGlob:  "*",
 		Parallelism: 20,
-		RandomDelay: 200 * time.Millisecond,
+		RandomDelay: 100 * time.Millisecond,
 	})
 	cmd.SpiderCallbacks(c)
 	if err := c.Visit("https://www.chinadaily.com.cn/a/202204/22/WS6262aca8a310fd2b29e58c2c.html"); err != nil {

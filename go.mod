@@ -21,8 +21,10 @@ require (
 	github.com/antchfx/xpath v1.2.0 // indirect
 	github.com/bits-and-blooms/bitset v1.2.2 // indirect
 	github.com/fsnotify/fsnotify v1.5.3 // indirect
+	github.com/go-redis/redis v6.15.9+incompatible // indirect
 	github.com/go-sql-driver/mysql v1.6.0 // indirect
 	github.com/gobwas/glob v0.2.3 // indirect
+	github.com/gocolly/redisstorage v0.0.0-20190812112800-1745c5e6d0ba // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect

@@ -8,7 +8,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gocolly/colly/v2"
+	"github.com/gocolly/colly/v2/proxy"
 	"github.com/olivere/elastic/v7"
+	"log"
 	"net"
 	"net/http"
 	"strings"
@@ -19,18 +21,18 @@ import (
 func NewCollector(options ...colly.CollectorOption) *colly.Collector {
 	c := colly.NewCollector(options...)
 
-	//rp, err := proxy.RoundRobinProxySwitcher("socks5://127.0.0.1:1080")
-	//if err != nil {
-	//	log.Println("attempt to use Socks5 proxy failed.")
-	//	panic(err)
-	//}
-	//c.SetRedirectHandler(func(req *http.Request, via []*http.Request) error {
-	//	log.Println(via[len(via)-1].URL.String(), " redirected to ", req.URL.String())
-	//	return nil
-	//})
+	rp, err := proxy.RoundRobinProxySwitcher("socks5://127.0.0.1:1081")
+	if err != nil {
+		log.Println("attempt to use Socks5 proxy failed.")
+		panic(err)
+	}
+	c.SetRedirectHandler(func(req *http.Request, via []*http.Request) error {
+		log.Println(via[len(via)-1].URL.String(), " redirected to ", req.URL.String())
+		return nil
+	})
 
 	c.WithTransport(&http.Transport{
-		//Proxy: rp,
+		Proxy: rp,
 		DialContext: (&net.Dialer{
 			Timeout:   30 * time.Second,
 			KeepAlive: 30 * time.Second,
@@ -39,6 +41,7 @@ func NewCollector(options ...colly.CollectorOption) *colly.Collector {
 		IdleConnTimeout:       90 * time.Second,
 		TLSHandshakeTimeout:   10 * time.Second,
 		ExpectContinueTimeout: 1 * time.Second,
+		DisableKeepAlives:     true,
 	})
 	return c
 }
@@ -116,11 +119,11 @@ func SpiderCallbacks(c *colly.Collector) {
 				SourceURL:    url,
 				Paragraph:    paragraph,
 			}
-			if err = SaveDataToElastic("dict_article", "", data); err != nil {
+			if err = SaveDataToElastic("dict_article_test", "", data); err != nil {
 				fmt.Printf("SaveData error: %v\n", err)
 			}
 		}
-		err = SaveDataToMySQL("dict_article", &parser.DictArticleModel{
+		err = SaveDataToMySQL("dict_article_test", &parser.DictArticleModel{
 			//ID:                  id,
 			Type:                parser.TypeMap[category],
 			Title:               title,
