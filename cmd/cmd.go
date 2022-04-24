@@ -58,13 +58,13 @@ func SpiderCallbacks(c *colly.Collector) {
 	// 抓取新的页面
 	c.OnHTML("a[href]", func(e *colly.HTMLElement) {
 		url := e.Attr("href")
-		if strings.Index(url, "http://") != 0 {
-			url = "http://www.enread.com" + url
+		if strings.Index(url, "http://") == -1 && strings.Index(url, "https://") == -1 {
+			url = "https:" + url
 		}
 
 		// 链接中存在某些关键字的直接跳过
 		skipURLKeywordsMap := []string{
-			"#", "com/tags", "com/skill", "com/exam", "com/job",
+			"#",
 		}
 		for _, keyword := range skipURLKeywordsMap {
 			if strings.Index(url, keyword) != -1 {
@@ -78,14 +78,17 @@ func SpiderCallbacks(c *colly.Collector) {
 	c.OnResponse(func(r *colly.Response) {
 		url := r.Request.URL.String()
 		domain := r.Request.URL.Host
-		if strings.Index(url, "index.html") != -1 || strings.Index(url, "html") == -1 {
+		if strings.Index(url, ".htm") == -1 {
+			return
+		}
+		if strings.Index(string(r.Body), "pagestyle") != -1 {
 			return
 		}
 
 		body := r.Body
 		//id := parser.ID(url)
 		title := parser.Title(body)
-		author := parser.Author()
+		author := parser.Author(body)
 		category := parser.Category(url)
 		releaseDate := parser.ReleaseDate(body)
 		paragraphs, err := parser.Content(body)
@@ -93,7 +96,7 @@ func SpiderCallbacks(c *colly.Collector) {
 			fmt.Printf("Error: %s\n", err)
 		}
 		if len(paragraphs) == 0 {
-			fmt.Printf("Error: request failed, title or content is nil")
+			//fmt.Printf("Error: request failed, title or content is nil\n")
 			//	_ = r.Request.Retry()
 			return
 		}

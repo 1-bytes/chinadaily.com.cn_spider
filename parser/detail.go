@@ -1,7 +1,7 @@
 package parser
 
 import (
-	"net/url"
+	"chinadaily_com_cn/pkg/utils"
 	"regexp"
 	"strconv"
 	"strings"
@@ -19,28 +19,28 @@ func ID(u string) int {
 }
 
 // Author 作者
-func Author() string {
-	return "EnzoLiu"
+func Author(body []byte) string {
+	info := utils.GetBetweenStr(string(body), `<span class="info_l">`, `</span>`)
+	infoSplit := strings.Split(info, "|")
+	if len(infoSplit) >= 3 {
+		return strings.TrimSpace(infoSplit[0])
+	}
+	return ""
 }
 
 // Category 解析分类
 func Category(u string) string {
-	urlParse, err := url.Parse(u)
-	if err != nil {
-		return ""
-	}
-	// 取分类
-	urlPath := strings.Trim(urlParse.Path, "/")
-	urlPathSplit := strings.Split(urlPath, "/")
-	return strings.TrimSpace(urlPathSplit[0])
+	return "news"
 }
 
 // ReleaseDate 发布日期
 func ReleaseDate(body []byte) string {
-	re := regexp.MustCompile(`发布时间：(.+)\s{1,4}字体`)
-	match := re.FindAllStringSubmatch(string(body), -1)
-	if len(match) == 0 {
-		return ""
+	info := utils.GetBetweenStr(string(body), `<span class="info_l">`, `</span>`)
+	infoSplit := strings.Split(info, "|")
+	if len(infoSplit) >= 3 {
+		date := strings.TrimSpace(infoSplit[2])
+		date = strings.TrimSpace(utils.GetBetweenStr(date, "Updated: ", "\n"))
+		return date
 	}
-	return strings.TrimSpace(match[0][1])
+	return ""
 }

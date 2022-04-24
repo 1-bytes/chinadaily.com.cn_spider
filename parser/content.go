@@ -20,7 +20,7 @@ type paragraph map[string]string
 
 // Content 解析正文
 func Content(body []byte) ([]paragraph, error) {
-	re := `<div id="dede_content">([\S\s]+)<div class="dede_pages">`
+	re := `</figure>([\S\s]+?)</div>`
 	var contentRe = regexp.MustCompile(re)
 	// 从完整的网页中获取文章内容
 	content := contentRe.FindAllSubmatch(body, -1)
@@ -29,7 +29,7 @@ func Content(body []byte) ([]paragraph, error) {
 	}
 	body = filters.HtmlFilter(content[0][1])
 	// 文章拆段落(此时段落中可能中英文混合)
-	contentSplit := strings.Split(string(body), "\r\n")
+	contentSplit := strings.Split(string(body), "\n")
 	var paragraphs []paragraph
 	for key, value := range contentSplit {
 		if value == "" {

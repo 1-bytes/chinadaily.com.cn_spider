@@ -16,20 +16,19 @@ func main() {
 	c := cmd.NewCollector(
 		//colly.Debugger(&debug.LogDebugger{}),
 		colly.Async(true),
-		colly.AllowedDomains("www.enread.com", "enread.com"),
+		colly.AllowedDomains("www.chinadaily.com.cn", "chinadaily.com.cn"),
 		colly.DetectCharset(),
 		colly.URLFilters(
-			regexp.MustCompile(`/[A-Za-z/]+/\d+\.html$`),
-			regexp.MustCompile(`/[A-Za-z/]+/index\.html$`),
-			regexp.MustCompile(`http://www\.enread\.com/$`),
+			regexp.MustCompile(`www\.chinadaily\.com\.cn/\w*?/\d{6}/\d{2}/\w+\.html?$`),
+			//regexp.MustCompile(`http://www\.chinadaily\.com\.cn/index\.html$`),
 		))
 	c.Limit(&colly.LimitRule{
 		DomainGlob:  "*",
-		Parallelism: 5,
+		Parallelism: 20,
 		RandomDelay: 200 * time.Millisecond,
 	})
 	cmd.SpiderCallbacks(c)
-	if err := c.Visit("http://www.enread.com/"); err != nil {
+	if err := c.Visit("https://www.chinadaily.com.cn/a/202204/22/WS6262aca8a310fd2b29e58c2c.html"); err != nil {
 		panic(err)
 	}
 	c.Wait()
@@ -39,15 +38,14 @@ func main() {
 // testCase 测试用例
 func testCase() {
 	bootstrap.Setup()
-	//url := "http://www.enread.com/news/life/116818.html"
-	url := "http://www.enread.com/science/116639.html"
+	url := "https://www.chinadaily.com.cn/a/202204/22/WS6262aca8a310fd2b29e58c2c.html"
 	bytes, err := fetcher.Fetch(url)
 	if err != nil {
 		panic(err)
 	}
 	//id := parser.ID(url)
 	title := parser.Title(bytes)
-	author := parser.Author()
+	author := parser.Author(bytes)
 	category := parser.Category(url)
 	releaseDate := parser.ReleaseDate(bytes)
 	paragraphs, err := parser.Content(bytes)
